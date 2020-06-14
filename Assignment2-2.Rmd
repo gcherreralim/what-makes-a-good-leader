@@ -1,0 +1,379 @@
+---
+title: "Assignment 2"
+subtitle: "Advanced Statistical Inference"
+author: "Gabriel Herrera-Lim - `r format(Sys.Date(), '%b %d, %Y')`"
+output:
+  html_document:
+    theme: cerulean
+    highlight: pygments
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    code_folding: "show"
+    includes:
+      after_body: footer.html
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+<style>
+#TOC {
+  background: url("https://seeklogo.net/wp-content/uploads/2018/10/notre-dame-fighting-irish-logo.png");
+  background-size: 64px 64px;
+  background-position: top center;
+  padding-top: 60px !important;
+  background-repeat: no-repeat;
+}
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  color: #D39F10;
+  background-color: #0C2340;
+  font-family: Avenir Next;
+  font-weight: 600;
+}
+.list-group-item {
+  color: #0C2340;
+  background-color: #D39F10;
+}
+.nav>li>a {
+  position: relative;
+  display: block;
+  color: #D39F10;
+  background-color: white;
+}
+  .nav>li>a:hover {
+    background-color: #D39F10;
+    color: #0C2340;
+  }
+.nav-pills > li.active > a, .nav-pills > li.active > a:focus {
+  color: #D39F10;
+  background-color: #0C2340;
+}
+  .nav-pills > li.active > a:hover {
+    background-color: #D39F10;
+    color: #0C2340;
+  }
+</style>
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+      font-family: Avenir Next;
+      color: 0C2340;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 38px;
+  color: #0C2340;
+  font-family: Avenir Next;
+  font-style: bold;
+  font-weight: 800;
+  padding-top: 10px;
+  text-align: center;
+  text-decoration: underline;
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+h3.subtitle {
+  font-size: 25px;
+  color: #AE9142;
+  font-family: Avenir Next;
+  font-style: bold;
+  font-weight: 800;
+  text-align: center;
+  margin: 0px;
+}
+h4.author {
+  font-size: 20px;
+  color: #AE9142;
+  font-family: Avenir Next;
+  font-style: bold;
+  font-weight: 500;
+  text-align: center;
+  margin: 0px;
+}
+h2 { /* Header 3 */
+  font-size: 18px;
+  font-family: Avenir Next;
+  color: #0C2340;
+  font-weight: 700;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+    font-family: Avenir Next;
+    color: #AE9142;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 10px;
+    font-family: Avenir Next;
+    color: #AE9142;
+}
+blockquote {
+    padding: 10px 20px;
+    margin: 0 0 20px;
+    font-size: 12px;
+    border-left: 5px solid #AE9142;
+}
+</style>
+
+***
+
+## The Data
+
+The data that we are using is available in the "data" folder and is called: teamPerc.RData.
+
+```{r}
+library(tidyverse)
+library(stationery)
+load("~/Desktop/NOTRE DAME/1920A2/TR 2 Advanced Statistical Inference/02 Assignments/Assignment 2/teamPerc.rdata")
+```
+
+***
+
+## What Makes An Effective Leader?
+
+Why are some people seen as effective leaders and others are not? Are there any behaviors or characteristics that can help us quantify what an effective leader looks like? 
+
+The data that we are using comes from a large survey of employees and their direct manager (i.e., each leader provided self-ratings and their direct subordinates provided rating about the leader -- this is reflected by the `Rater` variable). We are most interested in subordinate ratings. This data contains individual items and the scale score for those items. The scale are hierarchical and are constructed as follows:
+
+The *forceful* scale contains the following subscales: takesCharge, declares, pushes
+
+The *enabling* scale contains the following subscales: empowers, listens, supports
+
+The *strategic* scale contains the following subscales: direction, growth, innovation
+
+The *operational* scale contains the following subscales: execution, efficiency, order
+
+There are also a number of demographic variables within this data (e.g., age, experience, gender, tenure). 
+
+The main goal is explain the *effect* variable. You can use individual items, scale subscores, and/or scale scores. 
+
+***
+
+## Bronze {.tabset .tabset-fade .tabset-pills}
+
+After examining the variables within the given data, generate at least 3 testable hypotheses; these should be generated before any visual exploration. 
+
+Conduct an *a priori* power analysis and determine the sample size needed for the effect size you would expect to achieve -- be conservative in your estimates. Without previous knowledge or research, you will have to think before just picking a number here. Remember that you will need to use the $f^2$ value and it can calculated as:
+
+$$f^2 = \frac{R^2_{adjusted}}{1 - R^2_{adjusted}}$$
+
+After conducting your power analysis, use linear regression to test your hypotheses and produce appropriate visualizations.
+
+Discuss the results of your model, both in terms of the model performance and your hypotheses. 
+
+> **Hypotheses**:  
+1. If a leader gets higher strategic scores, the higher the effect score is.  
+2. If a rater has worked with the leader, the longer they have worked together, the higher the effect score is.  
+3. If a leader has enough leadership tenure, age does not matter in effect.
+
+
+### Hypothesis 1 {.tabset .tabset-fade}
+My first hypothesis revolves around the strategic scale.
+
+> **Null Hypothesis:** Higher strategic scores have no significant relationship with effect score.  
+**Alternative Hypothesis:** Higher strategic scores lead to higher effect scores.
+
+#### A Priori Power Analysis
+
+I want to be conservative, and choose a relatively (very) low (trending towards 0 compared to 1) $R^2$ value, since I'm only using 1 predictors (including 3 subscale predictors) out of more than 80 variables. With that, I'm going with an $R^2$ of **0.012**. I got this basically by dividing 1 by 84 (88 variables minus 1 dependent variable and 3 subscale predictors). 
+
+```{r}
+library(pwr)
+f2_1 = (0.012/(1-0.012))
+pwr.f2.test(u = 1, v = NULL, f2 = f2_1, power = .8)
+```
+
+> Sample size to be significantly powered is 647 (646+1).
+
+***
+
+#### Modeling
+
+```{r}
+lm1 = lm(effect~strategic, data = teamPerc)
+summary(lm1)
+```
+
+
+```{r}
+teamPerc %>%
+  ggplot(mapping = aes(x = strategic, y = effect)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  geom_smooth(color = "red")
+```
+
+Based on the model's summary statistics and visualization, I could see that the variable's relationship with effect score is significant. To highlight, the increase in strategic scores (if linear) lead to **higher** effect scores. In addition, the adjusted R-squared value of the model is actually 0.07941.
+
+However, we can also see from the smoothed trendlines that at some point, the relationship **peaks** (at around 0 strategic score), and **plateaus** (very slightly decreasing) after that point. This means that those with negative strategic scores have higher effect scores the closer they get to zero, but for those who have positive strategic scores, their effect scores actually go down.
+
+***
+
+### Hypothesis 2 {.tabset .tabset-fade}
+My second hypothesis revolves around the strength of leaders working together with the employee in getting a higher effect score.
+
+> **Null Hypothesis:** The longer the time the employee spent working with the leader doesn't have a significant effect on effect score.  
+**Alternative Hypothesis:** The longer the time the employee spent working with the leader, the higher the effect score is.
+
+#### A Priori Power Analysis
+
+For this a priori power analysis, I plan to use the predictor `worked_with`. While I do think the length of leaders working with employees affects the effect score positively, I believe that it's not entirely as telling as characteristic ratings. With that, I'll be using an r-squared value of 0.01.
+
+```{r}
+f2_2 = (.01/(1-.01))
+pwr.f2.test(u = 1, v = NULL, f2 = f2_2, power = .8)
+```
+
+You would need a sample size of 778 (777 + 1).
+
+***
+
+#### Modeling
+
+```{r}
+lm2 = lm(effect ~ worked_with, data = teamPerc)
+summary(lm2)
+```
+
+```{r}
+teamPerc %>%
+  ggplot(mapping = aes(x = worked_with, y = effect)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_smooth(color = "red")
+```
+
+Based on the model's summary statistics, I saw that the amount of time a leader worked with an employee didn't affect the effect variable much. For every unit increase (I'm assuming this is year), effect only increases by 0.025. The visualization also tells a similar story. The trend lines show a plateau (slightly rising if linear), indicating that effect does not increase much, despite the increase in worked_with. 
+
+In addition, the r-squared value is very similar to my estimate. This means that the model needs more variables to show a more telling story.
+
+***
+
+### Hypothesis 3 {.tabset .tabset-fade}
+My third hypothesis revolves around the interaction of age and tenure in leadership.
+
+> **Null Hypothesis:** The longer the time the leader has in tenure does not change the effect of age on the effect variable.
+**Alternative Hypothesis:** The longer the time the leader has in tenure decreases the effect of age on the effect variable.
+
+#### A Priori Power Analysis
+I feel like this would be more telling, especially since there's an interaction variable. With that, I'm estimating an r-squared of 0.15.
+
+```{r}
+f2_3 = (.15/(1-.15))
+pwr.f2.test(u = 1, v = NULL, f2 = f2_3, power = .8)
+```
+
+In this case, you would only need a sample size of 45 (44+1).
+
+***
+
+#### Modeling
+```{r}
+lm3 = lm(effect ~ leader_age*leader_tenure, data = teamPerc)
+summary(lm3)
+```
+
+```{r}
+library(interactions)
+
+interact_plot(lm3, pred = leader_age, modx = leader_tenure)
+```
+
+From the summary statistics, I saw that while both leader_tenure and leader_age have a positive (albeit small) effect on the effect variable, their interaction tells another story. As leader_tenure increases (in terms of standard deviation), the slope actually decreases (but still remains positive). This means that the longer the leader is in tenure, the less effect his age has on the effect rating. On the other hand, as his leadership tenure decreases by 1 standard deviation, the effect his age has on the effect rating increases. You can see this more clearly in the visualization. However, as we look at the p-values, we can see that the coefficients for leader_tenure and the interaction make the relationships not so significant.
+
+***
+
+## Silver {.tabset .tabset-fade .tabset-pills}
+
+Conduct any form of resampling and discuss the output from your resampled results. How does the resultant distribution help to support your hypotheses?
+
+### Resampling Method
+
+I decided to use bootstrapping, to see how resampling with replacement will benefit the distribution and significance of my models. We can also see whether or not we should have confidence in our variables.
+
+***
+
+### Resampling
+```{r}
+lm_silver = lm3
+summary(lm_silver)
+
+model_vars = dplyr::select(teamPerc, effect, leader_age, leader_tenure)
+bootstrapping = function(df) {
+  df = df
+  sampled_rows = sample(1:nrow(df), nrow(df), replace = TRUE)
+  df = df[sampled_rows,]
+  bs_mod = lm(effect ~ leader_age * leader_tenure, data = df)
+  results = broom::tidy(bs_mod)
+  return(results)
+}
+bootstrapping(model_vars)
+
+bs_rep = replicate(1000, bootstrapping(model_vars), simplify = FALSE)
+bs_combined = do.call("rbind", bs_rep)
+```
+
+***
+
+### Modeling
+```{r}
+mean_effect1 = mean(bs_combined$statistic[bs_combined$term == "leader_age"])
+ci_upper1 = quantile(bs_combined$statistic[bs_combined$term == "leader_age"], .975)
+ci_lower1 = quantile(bs_combined$statistic[bs_combined$term == "leader_age"], .025)
+
+{hist(bs_combined$statistic[bs_combined$term == "leader_age"], col = "slategray1")
+abline(v = summary(lm_silver)$coefficients["leader_age","t value"], col = "goldenrod4", lwd = 2)
+abline(v = ci_upper1, col = "sienna3", lwd = 2)
+abline(v = ci_lower1, col = "sienna3", lwd = 2)
+abline(v = mean_effect1, col = "sienna3", lwd = 2)}
+
+mean_effect2 = mean(bs_combined$statistic[bs_combined$term == "leader_tenure"])
+ci_upper2 = quantile(bs_combined$statistic[bs_combined$term == "leader_tenure"], .975)
+ci_lower2 = quantile(bs_combined$statistic[bs_combined$term == "leader_tenure"], .025)
+
+{hist(bs_combined$statistic[bs_combined$term == "leader_tenure"], col = "slategray1")
+abline(v = summary(lm_silver)$coefficients["leader_tenure","t value"], col = "goldenrod4", lwd = 2)
+abline(v = ci_upper2, col = "sienna3", lwd = 2)
+abline(v = ci_lower2, col = "sienna3", lwd = 2)
+abline(v = mean_effect2, col = "sienna3", lwd = 2)}
+```
+
+***
+
+### Analysis
+From the graphs, we can infer that with repeated samples with replacement (bootstrapping), we can expect a normal distribution and a clear picture of our 95% confidence interval (in this case, for t-values). We can also see which variables may cause some problems with our hypothesis. Often, our rule of thumb is the closer to 0 (~< |1.96|) t-values are, the less confidence we have in rejecting our null hypothesis.
+
+We can see the range of our 95% confidence intervals for both variables. Though the estimate for leader_age falls above our rule of thumb of t-values being < |1.96|, a significant portion of our values still falls below and close to zero. On the other hand, the statistics for leader_tenure gets even worse, with many of the values (all below the mean) falling below 1.96 and close to 0. This does not give us much confidence in having leader_age and tenure being significant predictors for effect because of the size of the amount of variance.
+
+***
+
+## Gold {.tabset .tabset-fade .tabset-pills}
+
+Consider any potential problems of your original regression model(s). Were there any observations exhibiting leverage? How sure are you about the standard errors? Identify one specific issue and revise your model strategy to help allieviate that issue.
+
+### Model
+```{r}
+summary(lm1)
+```
+
+### Plot
+```{r}
+plot(lm1)
+```
+
+We can see that there exists several observations with high degrees of leverage than the rest. Also, if we look at the plot of residuals and fitted values, we can see that the distribution isn't the same across fitted values. This indicates a certain level of heteroskedasticity in the model, and it'll mess with our standard errors. To alleviate this issue and get better estimates, I'll use a heteroskedasticity-consistent covariance matrix to test the coefficients.
+
+```{r}
+library(sandwich)
+vcovHC(lm1)
+
+lmtest::coeftest(lm1, vcov = vcovHC)
+```
+
+By using heteroskedasticity-consistent covariance matrices, we can generate better estimates and a more accurate standard error. We bring up the standard error by nearly double - from 0.017101 to 0.027728 (with a still-good t value). 
